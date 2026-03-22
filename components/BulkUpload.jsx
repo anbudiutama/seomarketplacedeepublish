@@ -52,7 +52,7 @@ export default function BulkUpload({ marketplace, onResults }) {
           setParsing(false);
         },
       });
-    } catch {
+    } catch (e) {
       setError('Gagal memproses file. Pastikan format CSV valid.');
       setParsing(false);
     }

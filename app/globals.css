@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,900;1,9..40,700;1,9..40,900&family=Space+Mono:wght@400;700&display=swap');
-
 :root {
   --deep-orange: #EA580C;
   --deep-dark: #1C1917;
@@ -40,5 +38,5 @@ body {
 }
 .pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
 
-/* Textarea auto-resize helper */
-textarea { field-sizing: content; min-height: 80px; }
+/* Textarea */
+textarea { min-height: 80px; }
