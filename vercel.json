@@ -1,0 +1,12 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "functions": {
+    "app/api/generate/route.js": {
+      "maxDuration": 60
+    },
+    "app/api/generate-bulk/route.js": {
+      "maxDuration": 300
+    }
+  }
+}
