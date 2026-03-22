@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { buildSystemPrompt, buildUserPrompt } from '@/lib/prompts';
 
-export const maxDuration = 300; // 5 min for bulk
+export const maxDuration = 300;
 
 export async function POST(request) {
   try {
@@ -27,20 +27,12 @@ export async function POST(request) {
       const book = books[i];
       
       if (!book.title || book.title.trim().length < 5) {
-        results.push({
-          index: i,
-          input: book,
-          error: `Baris ${i + 1}: Judul minimal 5 karakter`,
-        });
+        results.push({ index: i, input: book, error: 'Baris ' + (i + 1) + ': Judul minimal 5 karakter' });
         continue;
       }
 
       if (!book.subject || book.subject.trim().length < 2) {
-        results.push({
-          index: i,
-          input: book,
-          error: `Baris ${i + 1}: Bidang ilmu wajib diisi`,
-        });
+        results.push({ index: i, input: book, error: 'Baris ' + (i + 1) + ': Bidang ilmu wajib diisi' });
         continue;
       }
 
@@ -63,11 +55,8 @@ export async function POST(request) {
         });
 
         if (!response.ok) {
-          results.push({
-            index: i,
-            input: book,
-            error: `Baris ${i + 1}: API error ${response.status}`,
-          });
+          const errText = await response.text();
+          results.push({ index: i, input: book, error: 'Baris ' + (i + 1) + ': API error - ' + errText.substring(0, 200) });
           continue;
         }
 
@@ -81,14 +70,9 @@ export async function POST(request) {
 
         results.push({ index: i, input: book, result: parsed });
       } catch (err) {
-        results.push({
-          index: i,
-          input: book,
-          error: `Baris ${i + 1}: ${err.message}`,
-        });
+        results.push({ index: i, input: book, error: 'Baris ' + (i + 1) + ': ' + err.message });
       }
 
-      // Rate limit spacing: 1s between calls
       if (i < books.length - 1) {
         await new Promise((r) => setTimeout(r, 1000));
       }
@@ -97,6 +81,6 @@ export async function POST(request) {
     return NextResponse.json({ results });
   } catch (err) {
     console.error('Bulk generate error:', err);
-    return NextResponse.json({ error: 'Bulk generation failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Bulk generation failed: ' + err.message }, { status: 500 });
   }
 }

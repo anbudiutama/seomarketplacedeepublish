@@ -7,12 +7,11 @@ export async function POST(request) {
   try {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'ANTHROPIC_API_KEY belum di-set di environment variables' }, { status: 500 });
     }
 
     const { bookData, marketplace = 'shopee' } = await request.json();
 
-    // Peningkatan #2: Server-side validation
     if (!bookData?.title || bookData.title.trim().length < 5) {
       return NextResponse.json({ error: 'Judul buku minimal 5 karakter' }, { status: 400 });
     }
@@ -23,6 +22,13 @@ export async function POST(request) {
     const systemPrompt = buildSystemPrompt(marketplace);
     const userPrompt = buildUserPrompt(bookData);
 
+    const requestBody = {
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+    };
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -30,19 +36,23 @@ export async function POST(request) {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 4096,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const errText = await response.text();
       console.error('Anthropic API error:', response.status, errText);
+      
+      let errorDetail = 'API error ' + response.status;
+      try {
+        const errJson = JSON.parse(errText);
+        errorDetail = errJson.error?.message || errText;
+      } catch (e) {
+        errorDetail = errText;
+      }
+      
       return NextResponse.json(
-        { error: `AI service error: ${response.status}` },
+        { error: 'Anthropic: ' + errorDetail },
         { status: 502 }
       );
     }
@@ -60,7 +70,7 @@ export async function POST(request) {
   } catch (err) {
     console.error('Generate error:', err);
     return NextResponse.json(
-      { error: 'Gagal menghasilkan konten. Coba lagi.' },
+      { error: 'Server error: ' + err.message },
       { status: 500 }
     );
   }
